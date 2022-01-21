@@ -8,12 +8,12 @@ Image::Image(const char *filename)
 {
     if (read(filename))
     {
-        printf("file read %s", &filename);
+        printf("file read %s", filename);
         size = w * h * channels;
     }
     else
     {
-        printf("Failed reading file %s", &filename);
+        printf("Failed reading file %s", filename);
     }
 }
 Image::Image(int w, int h, int channels) : w(w), h(h), channels(channels)
@@ -41,23 +41,22 @@ bool Image::write(const char *filename)
     switch (type)
     {
     case PNG:
-        success = stbi_write_png(filename, w,h, channels,data, w*channels);
-        break;
-    
-    case JPG:
-        success = stbi_write_jpg(filename, w,h, channels,data, 100);
-        break;
-    
-    case BMP:
-        success = stbi_write_bmp(filename, w,h, channels,data);
-        break;
-    
-    case TGA:
-        success = stbi_write_tga(filename, w,h, channels,data);
+        success = stbi_write_png(filename, w, h, channels, data, w * channels);
         break;
 
+    case JPG:
+        success = stbi_write_jpg(filename, w, h, channels, data, 100);
+        break;
+
+    case BMP:
+        success = stbi_write_bmp(filename, w, h, channels, data);
+        break;
+
+    case TGA:
+        success = stbi_write_tga(filename, w, h, channels, data);
+        break;
     }
-    return success !=0;
+    return success != 0;
 }
 ImageType Image::getFileType(const char *filename)
 {
@@ -84,16 +83,48 @@ ImageType Image::getFileType(const char *filename)
         }
     }
 }
-int main(int argc, char** argv)
+
+Image &Image::grayscale_avg()
+{
+    if (channels < 3)
+    {
+        printf("Image %p has less than 3 channels. I will assume that it's already in grayscale", this);
+    }
+    else
+    {
+        for (int i = 0; i < size; i++)
+        {
+            int gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            memset(data+i,gray,3);
+        }
+    }
+    return *this;
+}
+Image &Image::grayscale_lum()
+{
+    if (channels < 3)
+    {
+        printf("Image %p has less than 3 channels. I will assume that it's already in grayscale", this);
+    }
+    else
+    {
+        for (int i = 0; i < size; i++)
+        {
+            int gray = (0.2126*data[i] + 0.7152*data[i + 1] + 0.0722*data[i + 2]);
+            memset(data+i,gray,3);
+        }
+    }
+    return *this;
+}
+
+int main(int argc, char **argv)
 {
     Image test("test.jpg");
-    test.write("new.png");
-    Image copy = test;
-    for (int i=0;i < copy.w*copy.channels;i++) {
-        copy.data[i] = 255;
-    }
-    copy.write("copy.png");
-    Image blank(100,100,3);
-    blank.write("blank.jpg");
+    Image gray_avg = test;
+    Image gray_lum = test;
+    gray_avg.grayscale_avg();
+    gray_avg.write("grayscaleavg.jpg");
+    gray_lum.grayscale_lum();
+    gray_lum.write("grayscalelum.jpg");
     return 0;
 }
