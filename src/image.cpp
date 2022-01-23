@@ -116,7 +116,6 @@ Image &Image::grayscale_lum()
     }
     return *this;
 }
-
 int main(int argc, char **argv)
 {
     Image test("test.jpg");
